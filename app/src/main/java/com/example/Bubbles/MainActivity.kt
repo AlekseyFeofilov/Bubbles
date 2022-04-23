@@ -1,4 +1,4 @@
-package com.example.androidtest
+package com.example.Bubbles
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -9,11 +9,12 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.lifecycleScope
-import com.example.androidtest.databinding.ActivityMainBinding
+import com.example.Bubbles.R
+import com.example.Bubbles.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import kotlin.math.PI
 
-private class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private var touchParams = object {

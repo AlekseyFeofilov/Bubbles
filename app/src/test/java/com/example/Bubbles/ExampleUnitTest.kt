@@ -1,4 +1,4 @@
-package com.example.androidtest
+package com.example.Bubbles
 
 import org.junit.Test
 

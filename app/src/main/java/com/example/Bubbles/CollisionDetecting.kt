@@ -1,4 +1,4 @@
-package com.example.androidtest
+package com.example.Bubbles
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

@@ -1,4 +1,4 @@
-package com.example.androidtest
+package com.example.Bubbles
 
 import kotlin.math.abs
 import kotlin.math.cos
