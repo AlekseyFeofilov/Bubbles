@@ -13,6 +13,7 @@ import com.example.Bubbles.R
 import com.example.Bubbles.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import kotlin.math.PI
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -40,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         binding.mediumBubbleImageView.setOnClickListener { bubbleSize = 100 }
     }
 
-    private fun setBubbleImageView(imageView: ImageView, x: Float, y: Float){
+    private fun setBubbleImageView(imageView: ImageView, x: Float, y: Float) {
         val density = this.resources.displayMetrics.density
 
         val params = ConstraintLayout.LayoutParams(
@@ -56,16 +57,35 @@ class MainActivity : AppCompatActivity() {
         imageView.setBackgroundResource(R.drawable.bubble)
     }
 
-    private fun moveBubble(bubble: Bubble, imageView: ImageView){
+    private fun moveBubble(bubble: Bubble, imageView: ImageView) {
+        val collisionWith = bubbles.filter {
+            it.first != imageView && isBubbleCollisionDetected(it.first, imageView)
+        }
+
         when {
-            bubble.positionX < 0 && bubble.speedX < 0 -> {
-                bubble.collision(PI)
+            bubble.positionX < 0 && bubble.speedX < 0 ||
+                    bubble.positionX > binding.layout.width - imageView.width &&
+                    bubble.speedX > 0 ||
+                    bubble.positionY > binding.layout.height - imageView.height &&
+                    bubble.speedY > 0 -> {
+                bubble.collision(null)
             }
-            bubble.positionX > binding.layout.width - imageView.width && bubble.speedX > 0 -> {
-                bubble.collision(-PI)
-            }
-            bubble.positionY > binding.layout.height - imageView.height && bubble.speedY > 0 -> {
-                bubble.collision(-PI / 2)
+            collisionWith.isNotEmpty() -> collisionWith.forEach {
+                when {
+                    collisionWith.size > 1 -> {
+                        bubble.dead()
+                        binding.layout.removeView(imageView)
+                        bubbles.remove(bubbles.find { it.second == bubble })
+                    }
+                    abs(bubble.speedX - it.second.speedX) < 1 &&
+                    abs(bubble.speedY - it.second.speedY) < 1  -> {
+                        bubble.stickTogether(it.second)
+                    }
+                    else -> {
+                        bubble.collision(it.second)
+                        it.second.collision(bubble)
+                    }
+                }
             }
         }
         bubble.move()
@@ -87,21 +107,25 @@ class MainActivity : AppCompatActivity() {
                         val imageView = ImageView(context)
                         setBubbleImageView(imageView, touchParams.x, touchParams.y)
 
-                        val speedX = if (imageView.x < binding.layout.width / 2) 10.0 else -10.0
-                        val bubble = Bubble(imageView.x, imageView.y, speedX)
+                        val speedX =
+                            if (imageView.x < binding.layout.width / 2) (10..15).random().toDouble()
+                            else (-15..-10).random().toDouble()
+
+                        val bubble = Bubble(imageView.x, imageView.y, speedX, bubbleSize)
                         bubbles.add(Pair(imageView, bubble))
 
                         lifecycleScope.launch {
-                            val job = lifecycleScope.launch {
+                            bubble.live(lifecycleScope.launch {
                                 while (true) {
                                     delay(30)
                                     moveBubble(bubble, imageView)
                                 }
-                            }
+                            })
 
                             delay((10..30).random().toLong() * 1000)
-                            job.cancel()
+                            bubble.dead()
                             binding.layout.removeView(imageView)
+                            bubbles.remove(bubbles.find { it.second == bubble })
                         }
 
                         imageView.setOnTouchListener(bubbleClickListener)
@@ -151,8 +175,7 @@ class MainActivity : AppCompatActivity() {
                 draggableItem.visibility = View.VISIBLE
 
                 val bubble = bubbles.find { it.first == draggableItem }!!.second
-                bubble.positionX = draggableItem.x
-                bubble.positionY = draggableItem.y
+                bubble.synchronize(draggableItem)
 
                 true
             }

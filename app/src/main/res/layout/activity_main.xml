@@ -13,8 +13,8 @@
         android:layout_height="match_parent"
         android:background="@drawable/wooden_background"
         android:scaleType="centerCrop"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="16dp" />
+        tools:layout_editor_absoluteX="-205dp"
+        tools:layout_editor_absoluteY="-16dp" />
 
     <ImageView
         android:id="@+id/smallBubbleImageView"
