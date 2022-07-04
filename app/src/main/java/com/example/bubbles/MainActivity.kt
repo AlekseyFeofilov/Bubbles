@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
                     bubble.speedX > 0 ||
                     bubble.positionY > binding.layout.height - imageView.height &&
                     bubble.speedY > 0 -> {
-                bubble.collision(null)
+                bubble.push()
             }
             collisionWith.isNotEmpty() -> collisionWith.forEach {
                 when {
@@ -82,8 +82,8 @@ class MainActivity : AppCompatActivity() {
                         bubble.stickTogether(it.second)
                     }
                     else -> {
-                        bubble.collision(it.second)
-                        it.second.collision(bubble)
+                        bubble.push(it.second)
+                        it.second.push(bubble)
                     }
                 }
             }
@@ -108,8 +108,8 @@ class MainActivity : AppCompatActivity() {
                         setBubbleImageView(imageView, touchParams.x, touchParams.y)
 
                         val speedX =
-                            if (imageView.x < binding.layout.width / 2) (10..15).random().toDouble()
-                            else (-15..-10).random().toDouble()
+                            if (imageView.x < binding.layout.width / 2) (10..15).random().toFloat()
+                            else (-15..-10).random().toFloat()
 
                         val bubble = Bubble(imageView.x, imageView.y, speedX, bubbleSize)
                         bubbles.add(Pair(imageView, bubble))
