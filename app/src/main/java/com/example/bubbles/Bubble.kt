@@ -1,6 +1,5 @@
 package com.example.bubbles
 
-import android.view.View
 import kotlinx.coroutines.Job
 
 class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
@@ -14,11 +13,21 @@ class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
         private set
 
     private var weight: Int
-    private var elasticCoefficient = 0.5f
     private var job: Job? = null
 
+    companion object {
+        private const val maxStartSpeedY = -10
+        private const val minStartSpeedY = 4
+        private const val infinityWeight = 1000000
+        private var elasticCoefficient = 0.5f
+
+        const val smallBubbleSize = 50
+        const val middleBubbleSize = 100
+        const val bigBubbleSize = 150
+    }
+
     init {
-        speedY = (-10..4).random().toFloat()
+        speedY = (maxStartSpeedY..minStartSpeedY).random().toFloat()
 
         this.positionX = positionX
         this.positionY = positionY
@@ -43,7 +52,12 @@ class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
         centerX1: Float, centerX2: Float,
         centerY1: Float, centerY2: Float,
         radius1: Int, radius2: Int
-    ) = Geometry.distanceBetweenTwoPoints(centerX1, centerX2, centerY1, centerY2) < radius1 + radius2
+    ) = Geometry.distanceBetweenTwoPoints(
+        centerX1,
+        centerX2,
+        centerY1,
+        centerY2
+    ) < radius1 + radius2
 
     fun push(collisionBubble: Bubble? = null) {
         speedX = recalculateSpeedAfterInelasticImpact(
@@ -64,7 +78,7 @@ class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
             speedTo,
             speedFrom ?: 0f,
             weight,
-            weightTo ?: 1000000
+            weightTo ?: infinityWeight
         )
     }
 

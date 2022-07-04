@@ -16,7 +16,7 @@ import kotlin.math.abs
 import com.example.bubbles.extensions.BubbleExtensions.Companion.isBubbleCollisionDetected
 import com.example.bubbles.extensions.BubbleExtensions.Companion.synchronize
 
-class MainActivity : AppCompatActivity() {
+private class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private var touchParams = object {
@@ -25,8 +25,23 @@ class MainActivity : AppCompatActivity() {
         var job: Job? = null
     }
 
+    private companion object {
+        private const val collisionLimit = 1
+        private const val minSpeedDifference = 1
+
+        private const val minHorizontalForce = 10
+        private const val maxHorizontalForce = 15
+
+        private const val moveDelay: Long = 30
+        private const val generateCoefficient = 5
+        private const val secondsInMinutes = 1000
+
+        private const val minSecOfLife: Long = 10
+        private const val maxSecOfLife: Long = 30
+    }
+
     private var bubbles = mutableListOf<Pair<ImageView, Bubble>>()
-    private var bubbleSize = 100
+    private var bubbleSize = Bubble.middleBubbleSize
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,9 +52,9 @@ class MainActivity : AppCompatActivity() {
         binding.layout.setOnTouchListener(createBubble)
         binding.layout.setOnDragListener(bubbleDragListener)
 
-        binding.bigBubbleImageView.setOnClickListener { bubbleSize = 150 }
-        binding.smallBubbleImageView.setOnClickListener { bubbleSize = 50 }
-        binding.mediumBubbleImageView.setOnClickListener { bubbleSize = 100 }
+        binding.bigBubbleImageView.setOnClickListener { bubbleSize = Bubble.bigBubbleSize }
+        binding.smallBubbleImageView.setOnClickListener { bubbleSize = Bubble.smallBubbleSize }
+        binding.mediumBubbleImageView.setOnClickListener { bubbleSize = Bubble.middleBubbleSize }
     }
 
     private fun setBubbleImageView(imageView: ImageView, x: Float, y: Float) {
@@ -73,13 +88,13 @@ class MainActivity : AppCompatActivity() {
             }
             collisionWith.isNotEmpty() -> collisionWith.forEach {
                 when {
-                    collisionWith.size > 1 -> {
+                    collisionWith.size > collisionLimit -> {
                         bubble.dead()
                         binding.layout.removeView(imageView)
                         bubbles.remove(bubbles.find { it.second == bubble })
                     }
-                    abs(bubble.speedX - it.second.speedX) < 1 &&
-                    abs(bubble.speedY - it.second.speedY) < 1  -> {
+                    abs(bubble.speedX - it.second.speedX) < minSpeedDifference &&
+                    abs(bubble.speedY - it.second.speedY) < minSpeedDifference  -> {
                         bubble.stickTogether(it.second)
                     }
                     else -> {
@@ -109,8 +124,8 @@ class MainActivity : AppCompatActivity() {
                         setBubbleImageView(imageView, touchParams.x, touchParams.y)
 
                         val speedX =
-                            if (imageView.x < binding.layout.width / 2) (10..15).random().toFloat()
-                            else (-15..-10).random().toFloat()
+                            if (imageView.x < binding.layout.width / 2) (minHorizontalForce..maxHorizontalForce).random().toFloat()
+                            else (-maxHorizontalForce..-minHorizontalForce).random().toFloat()
 
                         val bubble = Bubble(imageView.x, imageView.y, speedX, bubbleSize)
                         bubbles.add(Pair(imageView, bubble))
@@ -118,19 +133,19 @@ class MainActivity : AppCompatActivity() {
                         lifecycleScope.launch {
                             bubble.live(lifecycleScope.launch {
                                 while (true) {
-                                    delay(30)
+                                    delay(moveDelay)
                                     moveBubble(bubble, imageView)
                                 }
                             })
 
-                            delay((10..30).random().toLong() * 1000)
+                            delay((minSecOfLife..maxSecOfLife).random() * secondsInMinutes)
                             bubble.dead()
                             binding.layout.removeView(imageView)
                             bubbles.remove(bubbles.find { it.second == bubble })
                         }
 
                         imageView.setOnTouchListener(bubbleClickListener)
-                        delay((bubbleSize * 5).toLong())
+                        delay((bubbleSize * generateCoefficient).toLong())
                     }
                 }
             }
