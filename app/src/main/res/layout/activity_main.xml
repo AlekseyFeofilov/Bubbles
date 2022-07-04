@@ -14,7 +14,8 @@
         android:background="@drawable/wooden_background"
         android:scaleType="centerCrop"
         tools:layout_editor_absoluteX="-205dp"
-        tools:layout_editor_absoluteY="-16dp" />
+        tools:layout_editor_absoluteY="-16dp"
+        android:contentDescription="@string/backgroundDescription" />
 
     <ImageView
         android:id="@+id/smallBubbleImageView"
@@ -24,7 +25,8 @@
         app:layout_constraintBottom_toBottomOf="@+id/bigBubbleImageView"
         app:layout_constraintEnd_toStartOf="@+id/mediumBubbleImageView"
         app:layout_constraintStart_toEndOf="@+id/bigBubbleImageView"
-        app:srcCompat="@drawable/bubble" />
+        app:srcCompat="@drawable/bubble"
+        android:contentDescription="@string/smallBubbleDescription" />
 
     <ImageView
         android:id="@+id/bigBubbleImageView"
@@ -33,7 +35,8 @@
         android:layout_margin="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/backgroundImageView"
-        app:srcCompat="@drawable/bubble" />
+        app:srcCompat="@drawable/bubble"
+        android:contentDescription="@string/bigBubbleDescription" />
 
     <ImageView
         android:id="@+id/mediumBubbleImageView"
@@ -43,6 +46,7 @@
         app:layout_constraintTop_toTopOf="@+id/bigBubbleImageView"
         app:layout_constraintBottom_toBottomOf="@+id/bigBubbleImageView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/bubble" />
+        app:srcCompat="@drawable/bubble"
+        android:contentDescription="@string/mediumBubbleDescription" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
