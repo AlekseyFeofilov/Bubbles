@@ -12,8 +12,9 @@ import androidx.lifecycle.lifecycleScope
 import com.example.Bubbles.R
 import com.example.Bubbles.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
-import kotlin.math.PI
 import kotlin.math.abs
+import com.example.bubbles.BubbleExtension.Companion.isBubbleCollisionDetected
+import com.example.bubbles.BubbleExtension.Companion.synchronize
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -59,7 +60,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun moveBubble(bubble: Bubble, imageView: ImageView) {
         val collisionWith = bubbles.filter {
-            it.first != imageView && isBubbleCollisionDetected(it.first, imageView)
+            it.first != imageView && bubble.isBubbleCollisionDetected(it.first, imageView)
         }
 
         when {
