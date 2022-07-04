@@ -1,4 +1,4 @@
-package com.example.Bubbles
+package com.example.bubbles
 
 import android.annotation.SuppressLint
 import android.os.Bundle

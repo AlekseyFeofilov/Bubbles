@@ -1,4 +1,4 @@
-package com.example.Bubbles
+package com.example.bubbles
 
 import android.graphics.Canvas
 import android.graphics.Point

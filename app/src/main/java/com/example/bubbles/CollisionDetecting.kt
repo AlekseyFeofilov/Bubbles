@@ -1,7 +1,6 @@
-package com.example.Bubbles
+package com.example.bubbles
 
 import android.view.View
-import kotlin.math.atan2
 import kotlin.math.pow
 import kotlin.math.sqrt
 
