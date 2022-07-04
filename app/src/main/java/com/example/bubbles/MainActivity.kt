@@ -13,8 +13,8 @@ import com.example.Bubbles.R
 import com.example.Bubbles.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import kotlin.math.abs
-import com.example.bubbles.BubbleExtension.Companion.isBubbleCollisionDetected
-import com.example.bubbles.BubbleExtension.Companion.synchronize
+import com.example.bubbles.extensions.BubbleExtensions.Companion.isBubbleCollisionDetected
+import com.example.bubbles.extensions.BubbleExtensions.Companion.synchronize
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding

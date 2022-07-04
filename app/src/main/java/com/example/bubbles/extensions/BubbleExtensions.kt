@@ -1,11 +1,12 @@
-package com.example.bubbles
+package com.example.bubbles.extensions
 
 import android.view.View
-import com.example.bubbles.ViewExtension.Companion.viewRadius
-import com.example.bubbles.ViewExtension.Companion.xCenter
-import com.example.bubbles.ViewExtension.Companion.yCenter
+import com.example.bubbles.Bubble
+import com.example.bubbles.extensions.ViewExtensions.Companion.viewRadius
+import com.example.bubbles.extensions.ViewExtensions.Companion.xCenter
+import com.example.bubbles.extensions.ViewExtensions.Companion.yCenter
 
-class BubbleExtension {
+class BubbleExtensions {
     companion object{
         fun Bubble.synchronize(view: View) = synchronize(view.x, view.y)
 

@@ -1,8 +1,8 @@
-package com.example.bubbles
+package com.example.bubbles.extensions
 
 import android.view.View
 
-class ViewExtension {
+class ViewExtensions {
     companion object{
         fun View.xCenter() = this.x + this.width / 2
 
