@@ -12,7 +12,7 @@ import com.example.bubbles.extensions.ViewExtensions.Companion.yCenter
 class Geometry {
     companion object{
         fun isCollided(v1: View, v2: View) = isCollided(
-            v1.xCenter(), v1.yCenter(), v2.xCenter(), v2.yCenter(), v1.viewRadius(), v2.viewRadius()
+            v1.xCenter(), v2.xCenter(), v1.yCenter(), v2.yCenter(), v1.viewRadius(), v2.viewRadius()
         )
 
         fun isCollided(

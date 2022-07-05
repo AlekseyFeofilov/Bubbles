@@ -64,7 +64,7 @@ class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
         return positionX < start && speedX < 0 ||
                 positionX > end && speedX > 0 ||
                 positionY > bottom && speedY > 0 ||
-                positionY > top && speedY < 0
+                positionY < top && speedY < 0
     }
 
     /**
