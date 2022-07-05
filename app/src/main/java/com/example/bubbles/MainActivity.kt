@@ -11,9 +11,9 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.lifecycleScope
 import com.example.Bubbles.R
 import com.example.Bubbles.databinding.ActivityMainBinding
+import com.example.bubbles.Geometry.Companion.isCollided
 import kotlinx.coroutines.*
 import kotlin.math.abs
-import com.example.bubbles.extensions.BubbleExtensions.Companion.isBubbleCollisionDetected
 import com.example.bubbles.extensions.BubbleExtensions.Companion.synchronize
 
 private class MainActivity : AppCompatActivity() {
@@ -40,7 +40,7 @@ private class MainActivity : AppCompatActivity() {
         private const val maxSecOfLife: Long = 30
     }
 
-    private var bubbles = mutableListOf<Pair<ImageView, Bubble>>()
+    private var bubbles = mutableMapOf<ImageView, Bubble>()
     private var bubbleSize = Bubble.middleBubbleSize
 
     @SuppressLint("ClickableViewAccessibility")
@@ -91,15 +91,15 @@ private class MainActivity : AppCompatActivity() {
                     collisionWith.size > collisionLimit -> {
                         bubble.dead()
                         binding.layout.removeView(imageView)
-                        bubbles.remove(bubbles.find { it.second == bubble })
+                        bubbles.remove(imageView)
                     }
-                    abs(bubble.speedX - it.second.speedX) < minSpeedDifference &&
-                    abs(bubble.speedY - it.second.speedY) < minSpeedDifference  -> {
-                        bubble.stickTogether(it.second)
+                    abs(bubble.speedX - it.value.speedX) < minSpeedDifference &&
+                    abs(bubble.speedY - it.value.speedY) < minSpeedDifference  -> {
+                        bubble.stickTogether(it.value)
                     }
                     else -> {
-                        bubble.push(it.second)
-                        it.second.push(bubble)
+                        bubble.push(it.value)
+                        it.value.push(bubble)
                     }
                 }
             }
@@ -128,7 +128,7 @@ private class MainActivity : AppCompatActivity() {
                             else (-maxHorizontalForce..-minHorizontalForce).random().toFloat()
 
                         val bubble = Bubble(imageView.x, imageView.y, speedX, bubbleSize)
-                        bubbles.add(Pair(imageView, bubble))
+                        bubbles[imageView] = bubble
 
                         lifecycleScope.launch {
                             bubble.live(lifecycleScope.launch {
@@ -141,7 +141,7 @@ private class MainActivity : AppCompatActivity() {
                             delay((minSecOfLife..maxSecOfLife).random() * secondsInMinutes)
                             bubble.dead()
                             binding.layout.removeView(imageView)
-                            bubbles.remove(bubbles.find { it.second == bubble })
+                            bubbles.remove(imageView)
                         }
 
                         imageView.setOnTouchListener(bubbleClickListener)
@@ -190,8 +190,8 @@ private class MainActivity : AppCompatActivity() {
                 draggableItem.y = dragEvent.y - (draggableItem.height / 2)
                 draggableItem.visibility = View.VISIBLE
 
-                val bubble = bubbles.find { it.first == draggableItem }!!.second
-                bubble.synchronize(draggableItem)
+                val bubble = bubbles[draggableItem]
+                bubble?.synchronize(draggableItem)
 
                 true
             }
