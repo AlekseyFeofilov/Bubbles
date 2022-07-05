@@ -1,4 +1,4 @@
-package com.example.Bubbles
+package com.example.bubbles
 
 import org.junit.Test
 

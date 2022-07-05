@@ -1,11 +1,11 @@
-package com.example.Bubbles
+package com.example.bubbles
 
 import android.graphics.Canvas
 import android.graphics.Point
 import android.view.View
 import androidx.core.content.res.ResourcesCompat
 
-internal class DragShadowBuilder(view: View, imageID: Int) : View.DragShadowBuilder(view){
+class DragShadowBuilder(view: View, imageID: Int) : View.DragShadowBuilder(view){
     private val shadow =
         ResourcesCompat.getDrawable(view.context.resources, imageID, view.context.theme)
 

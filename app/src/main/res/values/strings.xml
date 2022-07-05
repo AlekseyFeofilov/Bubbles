@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Bubbles</string>
+    <string name="backgroundDescription">background</string>
+    <string name="smallBubbleDescription">smallBubble</string>
+    <string name="bigBubbleDescription">bigBubble</string>
+    <string name="mediumBubbleDescription">mediumBubble</string>
 </resources>
