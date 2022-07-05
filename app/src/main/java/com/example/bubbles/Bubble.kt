@@ -48,17 +48,6 @@ class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
         positionY += speedY
     }
 
-    fun isBubbleCollisionDetected(
-        centerX1: Float, centerX2: Float,
-        centerY1: Float, centerY2: Float,
-        radius1: Int, radius2: Int
-    ) = Geometry.distanceBetweenTwoPoints(
-        centerX1,
-        centerX2,
-        centerY1,
-        centerY2
-    ) < radius1 + radius2
-
     fun push(collisionBubble: Bubble? = null) {
         speedX = recalculateSpeedAfterInelasticImpact(
             speedX, collisionBubble?.speedX, collisionBubble?.weight,
