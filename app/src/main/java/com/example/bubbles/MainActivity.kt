@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
         private const val maxHorizontalForce = 15
 
         private const val moveDelay: Long = 30
-        private const val generateCoefficient = 5
+        private const val generateCoefficient = 8
         private const val secondsInMinutes = 1000
 
         private const val minSecOfLife: Long = 10
