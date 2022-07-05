@@ -1,6 +1,7 @@
 package com.example.bubbles
 
 import kotlinx.coroutines.Job
+import kotlin.math.abs
 
 class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
     var speedY: Float
@@ -20,6 +21,7 @@ class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
         private const val minStartSpeedY = 4
         private const val infinityWeight = 1000000
         private var elasticCoefficient = 0.5f
+        private const val minSpeedDifference = 1
 
         const val smallBubbleSize = 50
         const val middleBubbleSize = 100
@@ -58,6 +60,28 @@ class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
         )
     }
 
+    fun isWallCollided(start: Int, top: Int, end: Int, bottom: Int): Boolean {
+        return positionX < start && speedX < 0 ||
+                positionX > end && speedX > 0 ||
+                positionY > bottom && speedY > 0 ||
+                positionY > top && speedY < 0
+    }
+
+    /**
+     * return true if bubbles stick together and false else
+     */
+    fun tryStickTogether(bubble: Bubble) =
+        if (abs(bubble.speedX - speedX) < minSpeedDifference &&
+            abs(bubble.speedY - speedY) < minSpeedDifference
+        ) {
+            stickTogether(bubble)
+            true
+        } else {
+            push(bubble)
+            bubble.push(this)
+            false
+        }
+
     private fun recalculateSpeedAfterInelasticImpact(
         speedTo: Float,
         speedFrom: Float?,
@@ -82,7 +106,7 @@ class Bubble(positionX: Float, positionY: Float, speedX: Float, weight: Int) {
                 (weightTo + weightFrom)
     }
 
-    fun stickTogether(bubble: Bubble) = stickTogether(bubble.speedX, bubble.speedY)
+    private fun stickTogether(bubble: Bubble) = stickTogether(bubble.speedX, bubble.speedY)
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun stickTogether(speedX: Float, speedY: Float) {

@@ -13,21 +13,19 @@ import com.example.Bubbles.R
 import com.example.Bubbles.databinding.ActivityMainBinding
 import com.example.bubbles.Geometry.Companion.isCollided
 import kotlinx.coroutines.*
-import kotlin.math.abs
 import com.example.bubbles.extensions.BubbleExtensions.Companion.synchronize
 
-private class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private var touchParams = object {
         var x = 0f
         var y = 0f
-        var job: Job? = null
+        var active = false
     }
 
     private companion object {
         private const val collisionLimit = 1
-        private const val minSpeedDifference = 1
 
         private const val minHorizontalForce = 10
         private const val maxHorizontalForce = 15
@@ -57,113 +55,125 @@ private class MainActivity : AppCompatActivity() {
         binding.mediumBubbleImageView.setOnClickListener { bubbleSize = Bubble.middleBubbleSize }
     }
 
-    private fun setBubbleImageView(imageView: ImageView, x: Float, y: Float) {
+    @SuppressLint("ClickableViewAccessibility")
+    private fun createBubbleImageView(x: Float, y: Float): ImageView {
+        val iv = ImageView(this)
         val density = this.resources.displayMetrics.density
-
         val params = ConstraintLayout.LayoutParams(
             (bubbleSize * density).toInt(),
             (bubbleSize * density).toInt()
         )
 
-        binding.layout.addView(imageView, params)
+        binding.layout.addView(iv, params)
+        iv.x = (x - params.width / 2)
+        iv.y = (y - params.height / 2)
+        iv.setBackgroundResource(R.drawable.bubble)
 
-        imageView.x = (x - params.width / 2)
-        imageView.y = (y - params.height / 2)
-
-        imageView.setBackgroundResource(R.drawable.bubble)
+        iv.setOnTouchListener(bubbleTouchListener)
+        return iv
     }
 
-    private fun moveBubble(bubble: Bubble, imageView: ImageView) {
-        val collisionWith = bubbles.filter {
-            it.first != imageView && bubble.isBubbleCollisionDetected(it.first, imageView)
+    private fun getBubbleCollisions(collided: View) =
+        bubbles.filter { it.key != collided && isCollided(it.key, collided) }
+
+    private fun isBubbleWallCollided(b: Bubble, iv: ImageView): Boolean {
+        return b.isWallCollided(
+            0,
+            0,
+            binding.layout.width - iv.width,
+            binding.layout.height - iv.height
+        )
+    }
+
+    private fun deadBubble(b: Bubble, iv: ImageView) {
+        b.dead()
+        binding.layout.removeView(iv)
+        bubbles.remove(iv)
+    }
+
+    private fun recalculateImageViewPosition(iv: ImageView, b: Bubble) {
+        iv.x = b.positionX
+        iv.y = b.positionY
+    }
+
+    private fun moveBubble(b: Bubble, iv: ImageView) {
+        if (isBubbleWallCollided(b, iv)) {
+            b.push()
         }
 
-        when {
-            bubble.positionX < 0 && bubble.speedX < 0 ||
-                    bubble.positionX > binding.layout.width - imageView.width &&
-                    bubble.speedX > 0 ||
-                    bubble.positionY > binding.layout.height - imageView.height &&
-                    bubble.speedY > 0 -> {
-                bubble.push()
+        val collisionWith = getBubbleCollisions(iv)
+
+        getBubbleCollisions(iv).forEach {
+            if (collisionWith.size > collisionLimit) {
+                deadBubble(b, iv)
             }
-            collisionWith.isNotEmpty() -> collisionWith.forEach {
-                when {
-                    collisionWith.size > collisionLimit -> {
-                        bubble.dead()
-                        binding.layout.removeView(imageView)
-                        bubbles.remove(imageView)
-                    }
-                    abs(bubble.speedX - it.value.speedX) < minSpeedDifference &&
-                    abs(bubble.speedY - it.value.speedY) < minSpeedDifference  -> {
-                        bubble.stickTogether(it.value)
-                    }
-                    else -> {
-                        bubble.push(it.value)
-                        it.value.push(bubble)
-                    }
+
+            b.tryStickTogether(it.value)
+        }
+
+        b.move()
+        recalculateImageViewPosition(iv, b)
+    }
+
+    private fun getBubbleSpeed(posX: Float): Float {
+        val speed = (minHorizontalForce..maxHorizontalForce).random().toFloat()
+        return if (posX < binding.layout.width / 2) speed else -speed
+    }
+
+    private fun createBubble(posX: Float, posY: Float): ImageView {
+        val imageView = createBubbleImageView(posX, posY)
+        val speedX = getBubbleSpeed(posX)
+        val bubble = Bubble(imageView.x, imageView.y, speedX, bubbleSize)
+
+        bubbles[imageView] = bubble
+        beginMove(bubbles[imageView]!!, imageView)
+
+        return imageView
+    }
+
+    private fun beginMove(b: Bubble, iv: ImageView){
+        lifecycleScope.launch {
+            b.live(lifecycleScope.launch {
+                while (true) {
+                    delay(moveDelay)
+                    moveBubble(b, iv)
                 }
-            }
-        }
-        bubble.move()
+            })
 
-        imageView.x = bubble.positionX
-        imageView.y = bubble.positionY
+            delay((minSecOfLife..maxSecOfLife).random() * secondsInMinutes)
+            deadBubble(b, iv)
+        }
+
     }
 
     @SuppressLint("ClickableViewAccessibility")
     private val createBubble = View.OnTouchListener { _, event ->
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                touchParams.x = event.x
-                touchParams.y = event.y
-                val context = this
+        touchParams.x = event.x
+        touchParams.y = event.y
 
-                touchParams.job = lifecycleScope.launch {
-                    while (true) {
-                        val imageView = ImageView(context)
-                        setBubbleImageView(imageView, touchParams.x, touchParams.y)
+        if (event.action == MotionEvent.ACTION_UP ||
+            event.action == MotionEvent.ACTION_CANCEL
+        ) {
+            touchParams.active = false
+            return@OnTouchListener true
+        }
 
-                        val speedX =
-                            if (imageView.x < binding.layout.width / 2) (minHorizontalForce..maxHorizontalForce).random().toFloat()
-                            else (-maxHorizontalForce..-minHorizontalForce).random().toFloat()
+        if(touchParams.active) return@OnTouchListener true
 
-                        val bubble = Bubble(imageView.x, imageView.y, speedX, bubbleSize)
-                        bubbles[imageView] = bubble
+        touchParams.active = true
 
-                        lifecycleScope.launch {
-                            bubble.live(lifecycleScope.launch {
-                                while (true) {
-                                    delay(moveDelay)
-                                    moveBubble(bubble, imageView)
-                                }
-                            })
-
-                            delay((minSecOfLife..maxSecOfLife).random() * secondsInMinutes)
-                            bubble.dead()
-                            binding.layout.removeView(imageView)
-                            bubbles.remove(imageView)
-                        }
-
-                        imageView.setOnTouchListener(bubbleClickListener)
-                        delay((bubbleSize * generateCoefficient).toLong())
-                    }
-                }
-            }
-
-            MotionEvent.ACTION_MOVE -> {
-                touchParams.x = event.x
-                touchParams.y = event.y
-            }
-
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                touchParams.job!!.cancel()
+        lifecycleScope.launch {
+            while (touchParams.active) {
+                createBubble(touchParams.x, touchParams.y)
+                delay((bubbleSize * generateCoefficient).toLong())
             }
         }
-        true
+
+        return@OnTouchListener true
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private val bubbleClickListener = View.OnTouchListener { it, _ ->
+    private val bubbleTouchListener = View.OnTouchListener { it, _ ->
         val shadow = DragShadowBuilder(it, R.drawable.bubble)
         it.startDragAndDrop(null, shadow, it, 0)
 
@@ -190,9 +200,7 @@ private class MainActivity : AppCompatActivity() {
                 draggableItem.y = dragEvent.y - (draggableItem.height / 2)
                 draggableItem.visibility = View.VISIBLE
 
-                val bubble = bubbles[draggableItem]
-                bubble?.synchronize(draggableItem)
-
+                bubbles[draggableItem]?.synchronize(draggableItem)
                 true
             }
             else -> {
